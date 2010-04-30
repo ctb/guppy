@@ -7,28 +7,13 @@ read(fp) is the main function provided by this module.
 
 import csv
 import urllib
+from recordtype import recordtype
 
 DELIMITER='\t'
-FIELDNAMES = ['readname', 'strand', 'seqid', 'start', 'read', 'readqual', '_',
-              'mismatches']
+FIELDNAMES = ['readname', 'strand', 'seqid', 'start', 'read', 'readqual',
+              'n_mismatches', 'mismatches']
 
-class Bag(dict):
-    """dict-like class that supports attribute access as well as getitem.
-
-    >>> x = Bag()
-    >>> x['foo'] = 'bar'
-    >>> x.foo
-    'bar'
-    
-    """
-    def __init__(self, *args, **kw):
-        dict.__init__(self, *args, **kw)
-        for k in self.keys():
-            self.__dict__[k] = self.__getitem__(k)
-
-    def __setitem__(self, k, v):
-        dict.__setitem__(self, k, v)
-        self.__dict__[k] = v
+RawBowtieLine = recordtype('RawBowtieLine', FIELDNAMES)
 
 def read(fp):
     """Parse the given fp as Bowtie output, yielding Bag objects.
@@ -38,10 +23,10 @@ def read(fp):
 
     for row in reader:
         # store values in a Bag instead of a dict
-        row_d = Bag(row)
+        row_d = RawBowtieLine(**row)
 
         # convert start to int
-        row_d['start'] = int(row_d['start'])
+        row_d.start = int(row_d.start)
 
         # done!
         yield row_d
