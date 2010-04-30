@@ -1,4 +1,5 @@
 import sqlite3
+import csv
 
 ntd = dict(A=0, C=1, G=2, T=3)
 
@@ -53,7 +54,11 @@ class SnipperDB(object):
 
         return c.fetchone()[0]
 
-    def add(self, seqid, position, a, c, g, t, cursor=None):
+    def add_one(self, seqid, position, nt, cursor=None):
+        """for example, add_one(seqid, pos, 'a')"""
+        self.add(seqid, position, cursor=cursor, **{nt.lower() : 1})
+
+    def add(self, seqid, position, a=0, c=0, g=0, t=0, cursor=None):
         if cursor is None:
             cur = self.conn.cursor()
         else:
@@ -89,15 +94,35 @@ class SnipperDB(object):
         for x in c:
             yield x
 
+    def dump_to_csv(self, fp):
+        w = csv.writer(fp, delimiter=' ', quoting=csv.QUOTE_MINIMAL)
+        
+        # output to 'alleles.txt' in Excel-able format.
+        for (chr, pos, a, c, g, t) in self.all():
+            w.writerow((chr, pos, a, c, g, t, a + c + g +t ))
+
+def _test():
+    snp_count = SnipperDB(":memory:")
+
+    snp_count.add_one('foo', 1, 'C')
+    snp_count.add_one('foo', 5, 'T')
+    snp_count.add_one('foo', 1, 'C')
+    snp_count.add('foo', 2, a=1, c=1, g=5, t=1)
+    snp_count.sync()
+
+    i = iter(snp_count.get('foo', 0, 10))
+    x = i.next()
+    assert x == (1, 0, 2, 0, 0)         # 2 'C's at position 1
+    x = i.next()
+    assert x == (2, 1, 1, 5, 1)
+    x = i.next()
+    assert x == (5, 0, 0, 0, 1)         # 1 'T' at position 5
+
+    return snp_count
+    
 if __name__ == '__main__':
     import sys
-    snp_db = SnipperDB(sys.argv[1])
 
-    snp_db.add('foo', 1, 'C')
-    snp_db.add('foo', 5, 'T')
-
-    for x in snp_db.get('foo', 0, 100):
-        print x
-
-    for y in snp_db.all():
-        print y
+    snp_count = _test()
+    print '** test passed'
+    snp_count.dump_to_csv(sys.stdout)
