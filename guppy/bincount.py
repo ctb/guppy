@@ -9,6 +9,9 @@ class BinCount(object):
         self.data.extend(dl)
 
     def bin(self, binsize, min_=None, max_=None):
+        if not self.data:
+            return _BinnedData([], 0, 0, binsize)
+        
         if min_ is None:
             min_ = min(self.data)
         if max_ is None:
