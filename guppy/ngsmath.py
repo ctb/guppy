@@ -20,6 +20,9 @@ def calc_dot_product(acgt1, acgt2):
 
     >>> x = calc_dot_product([5,5,5,5], [6,6,6,6])
     >>> assert x == 1, x
+
+    >>> x = calc_dot_product([41,0,0,126], [47,0,0,65])
+    >>> assert round(x,3) == 0.952, x
     """
     
     len1 = math.sqrt(sum([ x**2 for x in acgt1 ]))
@@ -31,7 +34,7 @@ def calc_dot_product(acgt1, acgt2):
     acgt1 = [ float(x) / len1 for x in acgt1 ]
     acgt2 = [ float(x) / len2 for x in acgt2 ]
 
-    prod = math.sqrt(sum([ (x*y) for (x, y) in zip(acgt1, acgt2) ]))
+    prod = sum([ (x*y) for (x, y) in zip(acgt1, acgt2) ])
 
     return prod
 
@@ -43,3 +46,6 @@ def max_snp(a, c, g, t):
     if t == m: return 'T'
     assert False
 
+if __name__ == '__main__':
+    import doctest
+    doctest.testmod()
